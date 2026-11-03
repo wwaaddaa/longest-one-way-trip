@@ -72,10 +72,9 @@ Python 3がインストールされている環境で実行できます。
 入力データを `input.txt` に保存し、以下のコマンドを実行します。
 
 ```powershell
-python test.py < input.txt
+python main.py < input.txt
 ```
 
-※ `test.py` は実際に実行するPythonファイル名に合わせて変更してください。
 
 ## 7. 探索アルゴリズム
 
@@ -115,8 +114,7 @@ python test.py < input.txt
 ```text
 longest-one-way-trip/
 ├── README.md
-├── test.py
+├── main.py
 └── input.txt
 ```
 
-※ ファイル構成は実際のリポジトリに合わせて調整してください。
