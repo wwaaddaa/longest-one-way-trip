@@ -1,89 +1,55 @@
-
 import sys
 
-# 駅と駅のつながりを保存する
+sys.setrecursionlimit(100000)
+
 graph = {}
+total_edge = 0.0
 
-# 標準入力からデータを読み込む
 for line in sys.stdin:
-    if not line.strip():
+    line = line.strip()
+    if not line:
         continue
+    data = line.split(",")
+    if len(data) < 3:
+        continue
+    a = int(data[0])
+    b = int(data[1])
+    d = float(data[2])
+    graph.setdefault(a, []).append((b, d))
+    graph.setdefault(b, []).append((a, d))
+    total_edge += d
 
-    data = line.strip().split(",")
-
-    station_a = int(data[0])
-    station_b = int(data[1])
-    distance = float(data[2])
-
-    if station_a not in graph:
-        graph[station_a] = []
-
-    if station_b not in graph:
-        graph[station_b] = []
-
-    # 双方向のつながりを登録する
-    graph[station_a].append((station_b, distance))
-    graph[station_b].append((station_a, distance))
-
-
-# 最長ルートを保存する
-max_distance = -1
+# 各駅に接する辺の最大値(枝刈り用の緩い上界の計算に使用)
+max_distance = -1.0
 best_route = []
 
 
-# 最長ルートを更新する関数
-def update_best(distance, route):
+def dfs(start, current, visited, route, distance, remaining):
     global max_distance, best_route
 
     if distance > max_distance:
         max_distance = distance
         best_route = route.copy()
 
+    # 残りの辺をすべて使っても更新できないなら打ち切る
+    if distance + remaining <= max_distance:
+        return
 
-# 深さ優先探索
-def dfs(start, current, visited, route, distance):
-
-    # 現在までのルートも候補として記録する
-    update_best(distance, route)
-
-    # 現在の駅から行ける駅を調べる
-    for next_station, next_distance in graph[current]:
-
-        # 始点に戻る場合は、ルートを閉じる
-        if next_station == start and len(route) >= 3:
-            update_best(
-                distance + next_distance,
-                route + [start]
-            )
-
-        # 訪問していない駅なら進む
-        elif next_station not in visited:
-
-            visited.add(next_station)
-            route.append(next_station)
-
-            dfs(
-                start,
-                next_station,
-                visited,
-                route,
-                distance + next_distance
-            )
-
-            # 元の状態に戻る
+    for nxt, d in graph[current]:
+        if nxt == start and len(route) >= 3:
+            if distance + d > max_distance:
+                max_distance = distance + d
+                best_route = route + [start]
+        elif nxt not in visited:
+            visited.add(nxt)
+            route.append(nxt)
+            dfs(start, nxt, visited, route, distance + d, remaining - d)
             route.pop()
-            visited.remove(next_station)
+            visited.remove(nxt)
 
 
-# すべての駅から探索する
 for start in graph:
+    dfs(start, start, {start}, [start], 0.0, total_edge)
 
-    visited = {start}
-    route = [start]
-
-    dfs(start, start, visited, route, 0)
-
-
-# 駅IDだけを1行ずつ出力する
-for station in best_route:
-    print(station)
+sys.stdout.reconfigure(newline="")
+sys.stdout.write("".join(f"{s}\r\n" for s in best_route))
